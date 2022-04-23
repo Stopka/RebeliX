@@ -1,53 +1,83 @@
-// RebeliX
-//
-// endstop_X_Y-holder
-// GNU GPL v3
-// Martin Neruda <neruda@reprap4u.cz>
-// http://www.reprap4u.cz
+//-----------------------------------------------------------------
+//-  Endstop clamp, derived from the Prusa decorator clamps
+//--  (c) Juan Gonzalez Gomez (Obijuan) juan@iearobotics.com, 
+//--  April 2013
+//-----------------------------------------------------------------
 
-rod_dia = 8.2;
-height = 12;
-endstop_width = 16;
+X = 0;
+Y = 1;
+Z = 2;
 
-module endstop_base()
+//-- Clamp parameters
+rod_diam = 8;
+clamp_diam = rod_diam + 5;
+open_angle = 80;
+width = 20;
+base_lx = 20;
+base_ly = 5;
+base_lz = 12;
+
+zip_tie_holes = [clamp_diam, 1.5, 3];
+
+//-- Internal parameters
+open_x = 2*(rod_diam/2)*sin(open_angle/2);
+
+module Prusa_clamp() 
 {
-  translate([5.5/2,0,0]) cube([rod_dia + 9.5,endstop_width, height], center=true);
-}
+  union() {
 
+    //-- Clamp
+    difference() {
+      union(){
+        //-- outer cylinder
+      cylinder(r=clamp_diam/2, h=width);
 
-module endstop_cuts()
-{
-  nut_offset = 2.5;
-  
-  // Vyrez pro M8 tyc
-  cylinder(r=rod_dia/2, h = 12 + 0.01, $fn = 32, center = true);
-  
-  // Otvory pro pridelani endstopu
-  translate([-rod_dia/2,9.5/2,0]) rotate([0,90,0]) cylinder(r=2.2/2,h=8,$fn=16,center=true);
-  translate([-rod_dia/2 ,-9.5/2,0]) rotate([0,90,0]) cylinder(r=2.2/2,h=8,$fn=16,center=true);
+        //-- clamp Base
+    translate([0,-clamp_diam/2+2,base_lz/2])
+    cube([base_lx, base_ly, base_lz], center=true);
+      }
+      //-- Inner cylinder
+      cylinder(r=rod_diam/2, h=width*3,center=true);
 
-  // Vyrez pro nasazeni na M8 tyc
-  translate([rod_dia,0.2,0]) rotate([0,0,3]) cube([2*rod_dia,rod_dia - 1,height + 0.01], center=true);
-  translate([rod_dia,-0.2,0]) rotate([0,0,-3]) cube([2*rod_dia,rod_dia - 1,height + 0.01], center=true);
-  
-  // Vyrez pro M3
-  translate([rod_dia/2 + nut_offset,-endstop_width/2,0]) rotate([90,30,0]) nut(6.6,2.5);
-  translate([rod_dia/2 + nut_offset,0,0]) rotate([90,0,0]) cylinder(r=3.3/2,h=endstop_width + 0.01,$fn=16,center=true);
-  translate([rod_dia/2 + nut_offset,endstop_width/2,0]) rotate([90,0,0]) cylinder(r=7/2,h=5,$fn=32,center=true);
-}
-
-
-module nut(nut_diameter=6.6,nut_height=3){
-	cylinder(r=nut_diameter/2,h=2*nut_height,$fn=6,center=true);
-}
-
-module endstop()
-{
-  difference()
-  {
-	endstop_base();
-    endstop_cuts();
+      //-- Break the ring substracting a cube
+      translate([-open_x/2,0,-1])
+      cube([open_x, clamp_diam+10, width+2]);
+    }
   }
 }
 
-endstop();
+module endstop() {
+    endstop_width = 6.5;
+  difference(){
+    union(){
+      // Telo endstopu
+      translate([0,0,0]) color("blue") cube([10,20,endstop_width], center=true);
+      // Vyvody
+	  translate([-9,7,0]) cube([8,3,4],center=true);
+      translate([-9,-7,0]) cube([8,3,4],center=true);
+      // Spinac
+      translate([5,7,0]) cube([3,3,4],center=true);
+    }
+  // Otvory pro zip pasku
+  translate([-2,5,0]) cylinder(r=1.5,h=10,$fn=16,center=true);
+  translate([-2,-5,0]) cylinder(r=1.5,h=10,$fn=16,center=true);
+  }
+  
+}
+
+
+//---  Endstop holder
+
+difference() {
+
+  Prusa_clamp();
+    #translate([-5,-16,7])
+    rotate([90,0,0])
+  cylinder(r=1.2,h=30,$fn=16,center=true);
+  #translate([5,-16,7])
+    rotate([90,0,0])
+  cylinder(r=1.2,h=30,$fn=16,center=true);
+}
+
+%translate([0,-12,5]) rotate([180,90,90]) endstop();
+

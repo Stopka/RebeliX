@@ -6,67 +6,128 @@
 // http://www.reprap4u.cz
 
 include <../configuration.scad>
+$fn=50;
+frame_width = 30;
+frame_trail = 8;
+frame_depth = 1.5;
 
-height = 105;
-thickness = 25;
-width = height;
+axe_diameter = 15;
+spool_diameter = 200;
+base_width = 25;
+base_height = 10;
+base_extra = 10;
 
-module drzak_zakladna()
-{
-  translate([0,0,0]) cube([width,height,thickness]);
-  translate([width-15-4,-2,0]) cube([8,3,thickness]);
+screw_head = 13;
+screw_body = 6.5;
+screw_depth = 5;
+
+printer_back = 110;
+epsilon = 0.01;
+width = 5;
+
+/*
+[hidden]
+*/
+shift_back = printer_back - spool_diameter/2;
+shift_up = sqrt(pow(spool_diameter/2,2)-pow(shift_back-frame_width/2,2));
+
+module screw(){
+  rotate([-90,0,0]){
+    translate([0,0,shift_up/2])
+    cylinder(r=screw_head/2,h=shift_up+epsilon,center=true);
+    translate([0,0,-shift_up/2])
+    cylinder(r=screw_body/2,h=shift_up,center=true);
+  }
 }
 
-module drzak_rezy()
-{
-  translate([width-30,0,-0.1]) rotate([0,0,130]) cube([200,width,40]);
-  difference()
-  {  
-	translate([-0.1,10,7]) cube([width,height,40]);
-    // Opora drzaku
-	translate([width-45,10,0]) rotate([45,0,0]) cube([45,8,8]);
+
+module base(){
+    cube([frame_width,base_height,base_width]);
+    translate([frame_width/2-frame_trail/2,-frame_depth,0])
+    cube([frame_trail,frame_depth+epsilon,base_width]);
+}
+
+module extra(){
+  r=(base_width-width);
+  difference(){
+    hull(){
+      cube([frame_width,epsilon,base_width-width]);
+      translate([shift_back,shift_up,0])
+      cube([frame_width,epsilon,base_width-width]);
+    }
+    hull(){
+      resize([0,base_extra*2,0])
+      translate([frame_width/2,r+epsilon,r])
+      rotate([0,90,0])
+      cylinder(r=r+epsilon,h=frame_width*2,center=true);
+      translate([shift_back,shift_up+3*epsilon,0])
+      cube([frame_width,epsilon,base_width-width]);
+    }
   }
-  intersection()
-  {
-    translate([width,10,-0.1]) rotate([0,0,40]) cube([height,height+35,40]);
-    translate([30,0,-0.1]) cube([width,height+0.1,40]);
+}
+module spool(){
+  spool_w = 65;
+  color("blue")
+   translate([
+      frame_width/2+shift_back,
+      base_height+shift_up+axe_diameter/2,
+      -spool_w/2-2*width/3
+    ]){
+      cylinder(r=spool_diameter/2,h=spool_w,center = true);
+      cylinder(r=axe_diameter/2,h=spool_w+4*width,center = true);
+   }
+}
+%spool();
+
+module stand(){
+  difference(){
+    hull(){
+      cube([frame_width,epsilon,width]);
+      translate([shift_back,shift_up,0])
+      cube([frame_width,epsilon,width]);
+    }
+    hull(){
+       translate([frame_width/2+2,base_extra+axe_diameter/2,-epsilon])
+       cylinder(r=axe_diameter/2,h=width+2*epsilon);
+        translate([shift_back+axe_diameter/2+7,shift_up-axe_diameter/2-(frame_width-axe_diameter/2)/2+5,-epsilon])
+       cylinder(r=axe_diameter/2,h=width+2*epsilon);
+    }
   }
-  // Otvor pro sroub M6
-  translate([width-15,5,15]) rotate([-90,0,0]) cylinder(r = M6_head_diameter/2, h = 10, $fn = 30);
-  translate([width-15,-4,15]) rotate([-90,0,0]) cylinder(r = M6_dia/2, h = 20, $fn = 30);
-  // Otvor pro tyc M8
-  translate([15,height-5,-0.1]) cylinder(r = 8, h = 20, $fn = 30);
-  translate([15-8,height-5,-0.1]) cube([2*8,10,20]);
-  // Setreni plastem
-  hull()
-  {
-	translate([width-31.5,25,-0.1]) cylinder(h=10,r=5);
-	translate([width-78.5,width-24,-0.1]) cylinder(h=10,r=5);
+}
+
+module top(){
+  difference(){
+    cube([frame_width,axe_diameter,width]);
+    hull(){
+      translate([frame_width/2,axe_diameter/2+epsilon,width/2])
+      cylinder(r=axe_diameter/2,h=width+2*epsilon, center = true);
+      translate([frame_width/2,axe_diameter+epsilon,width/2])
+      cylinder(r=axe_diameter/2,h=width+2*epsilon, center = true);
+    }
   }
-  // Vyrez pro profilovou matku 
-  translate([width-15,-3,15]) cube([10,6,profile_nut_width],center=true);
+}
+
+module body(){
+  difference(){
+    union(){
+      base();
+      translate([0,base_height-epsilon,0]){
+        stand();
+        translate([0,0,width])
+        extra();
+      }
+      translate([shift_back,base_height+shift_up-epsilon,0])
+      top();
+    }
+    translate([frame_width/2,screw_depth,base_width/2])
+    screw();
+  }
   
-  // Seriznuti pro snazsi tisk
-  if(profile_nut_width != 0)
-  {
-	translate([width-30,0,15 + profile_nut_width/2]) rotate([180 - 40,0,0]) cube([30,3,8]);
-  }
 }
 
-// Cela soucastka
-module drzak_civky()
-{
- translate([-60,70,0]) rotate([0,0,-40]) 
- difference()
- {
-   drzak_zakladna();
-   drzak_rezy();  
- }
- translate([-25,80,0]) rotate([0,0,-140]) mirror([1,0,0]) difference()
- {
-  drzak_zakladna();
-  drzak_rezy();
- }
-}
+translate([5,0,0]);
+body();
 
-drzak_civky();
+mirror([1,0,0])
+translate([5,0,0])
+body();

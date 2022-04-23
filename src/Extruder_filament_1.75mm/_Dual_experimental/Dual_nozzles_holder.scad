@@ -16,7 +16,7 @@ base_extr_height = 9;
 //carriage_mount_distance = 40;
 carriage_mount_distance = 16;
 
-epsilon = 0.01;
+epsilon = 0.1;
 
 m3_nut_diameter=6.6;
 
@@ -34,7 +34,7 @@ drive_gear_hobbed_offset = 4;
 drive_gear_length = 13;
 drive_gear_tooth_depth = 0.35;
 
-filament_diameter = 1.75; // 1.75, 3.00
+filament_diameter = 2; // 1.75, 3.00
 filament_offset = [
 	drive_gear_hobbed_radius + filament_diameter / 2 - drive_gear_tooth_depth,
 	0,
@@ -75,11 +75,53 @@ module groovemount_holes (extruder_recess_big_d=16.4,
 
 module holder_base()
 {
+  led_height = 12;
+  led_w = 10;
+  led_angle = 30;
+  led_width = led_w*cos(led_angle);
   intersection()
   {
-    cube([base_width,nema17_width - 5,base_height-5]);
+    /*union(){
+      difference(){
+        translate([0,-led_width-1,0])
+        cube([base_width,led_width,base_height+3*led_height]);
+        
+        translate([0,-5-1,base_height+led_height-5])
+        rotate([-led_angle,0,0])
+        translate([-1,-50,0])
+        cube([base_width+2,100,100]);
+        
+        translate([0,-1,0])
+        rotate([-2*led_angle,0,0])
+        translate([-1,-50,-100])
+        cube([base_width+2,100,100]);
+        
+        #translate([0,0,base_height+led_height-12])
+        rotate([90-led_angle,0,0])
+        translate([-1+11,-5,-50])
+        hull(){
+          cylinder(r=led_height/2,h=100);
+          translate([base_width-20,0,0])
+          cylinder(r=led_height/2,h=100);
+        }
+      }
+      translate([0,0,0])
+      cube([base_width,nema17_width-5,base_height-5]);
+    }*/
+    difference(){
+      cube([base_width,nema17_width - 5,base_height-5]);
+      
+      #translate([9,-epsilon,3.5])
+      rotate([-90,0,0]){
+      cylinder(r=2/2,h=13,$fn=30);
+      translate([35,0,0])
+      cylinder(r=2/2,h=13,$fn=30);
+      }
+    }
     
-	translate([base_width/2,(nema17_width - 5)/2,0])
+	/*translate([base_width/2,(nema17_width - 5)/2,0])
+	  cylinder(r=35,h=40,$fn=64,center=true);*/
+    translate([base_width/2,(nema17_width - 5)/2,0])
 	  cylinder(r=29,h=40,$fn=64,center=true);
   }  
   intersection()
