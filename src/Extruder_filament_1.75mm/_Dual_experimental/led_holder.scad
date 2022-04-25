@@ -1,13 +1,13 @@
 height = 15;
 angle = 90-30;
-led_length=50;
+led_length=52;
 led_width=8;
 
-mount_with=45;
+mount_with=52;
 mount_height=8;
-mount_hole_d=2;
-mount_head_d=8;
-mount_hole_dist=35;
+mount_hole_d=2.95;
+mount_head_d=6;
+mount_hole_dist=52-9;
 mount_depth = 2.5;
 
 zip_w=3;

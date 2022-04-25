@@ -111,12 +111,11 @@ module holder_base()
     difference(){
       cube([base_width,nema17_width - 5,base_height-5]);
       
-      #translate([9,-epsilon,3.5])
-      rotate([-90,0,0]){
-      cylinder(r=2/2,h=13,$fn=30);
-      translate([35,0,0])
-      cylinder(r=2/2,h=13,$fn=30);
-      }
+      //extruder mount interloc
+      translate([0,-0.001,-1])
+      cube([12 - 3,5,9]);
+      translate([base_width-12 + 3,-0.001,-1])
+      cube([12 - 3,5,9]);
     }
     
 	/*translate([base_width/2,(nema17_width - 5)/2,0])
@@ -169,6 +168,15 @@ module holder_holes()
  
   translate([base_width - fan_offset,nema17_width/2 - filament_offset[0],base_height - 2*epsilon]) 
   rotate([90,0,-90]) nut_hole();
+    
+    // interlock screws
+      translate([9/2,9,3.5])
+      rotate([0,90,-90])
+      nut_hole();
+      
+       translate([base_width-9/2,9,3.5])
+      rotate([0,90,-90])
+      nut_hole();
 }
 
 module nozzles_holder_base()

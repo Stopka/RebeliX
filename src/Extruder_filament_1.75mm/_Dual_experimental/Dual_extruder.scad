@@ -104,7 +104,11 @@ module nema17_mount()
 			intersection()
 			{
 				cube([width , width, height], center = true);
-				cylinder(r = edge_radius, h = height + 2 * epsilon, $fn = 128, center = true);
+				union(){
+                    cylinder(r = edge_radius, h = height + 2 * epsilon, $fn = 128, center = true);
+                   translate([0,0,-edge_radius/2])
+                         cube([edge_radius,edge_radius, edge_radius]);
+                }
 			}
 			// mount for extruder	
 			translate([-nema17_width/2 + 5 - extruder_offset, nema17_width/2 + 6, 1])
@@ -112,7 +116,10 @@ module nema17_mount()
 			translate([-nema17_width/2 + 5 - extruder_offset, 4 ,0])
 				cube([10, nema17_width, height], center = true);
 			translate([-nema17_width/2, 4/2, 0])
-				cube([2*extruder_offset, nema17_width - 4, height], center = true);	
+				cube([2*extruder_offset, nema17_width - 4, height], center = true);
+            // nozzle mount interlock
+            translate([nema17_width/2-5/2 , nema17_width/2 + 3.5, 0])
+				cube([5, 7, height ], center = true);	
 		}
 		
 		// center hole
@@ -130,7 +137,12 @@ module nema17_mount()
 				cylinder(r = m3_radius, h = height * 4, center = true, $fn = 16);
 				cylinder(r = m3_head_radius, h = height + epsilon, $fn = 16);
 			}
-			
+		
+        // nozzle  interlock holes
+        translate([+nema17_width/2-6,nema17_width/2+7/2,(12-3)/2])
+        rotate([0,90,0])    
+        cylinder(r=m3_radius, h=7,$fn=16);
+            
 		// mount holes
 		translate([-nema17_width/2 + 5 - extruder_offset,nema17_width/2 - 29.3,9/2]) rotate([0,-90,0]) nut_hole();	
 		translate([-nema17_width/2 + 5 - extruder_offset,nema17_width/2 + 3.5 + 4,9 + corner_radius - 6]) rotate([0,-90,0]) nut_hole();
@@ -445,3 +457,14 @@ translate([nema17_width/2,nema17_width + 15,0])
 mirror([1,0,0])
 compact_extruder_with_idler();
 
+/*
+color("#00ff00")
+translate([21,21.2,52.1])
+rotate([0,90,90])
+import("../../../dist/Extruders/Dual_extruder_experimental_1.75/Dual_nozzles_holder.stl");
+
+ color("#0000FF")
+translate([21.3,21,52])
+rotate([0,90,0])
+import("../../../dist/Extruders/Dual_extruder_experimental_1.75/led_holder.stl");
+*/
